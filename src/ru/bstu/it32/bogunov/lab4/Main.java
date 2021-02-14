@@ -2,13 +2,13 @@ package ru.bstu.it32.bogunov.lab4;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         List<String> tagsToSave = new ArrayList<>();
 
@@ -18,41 +18,75 @@ public class Main {
                 if (scanner.nextInt() == 0) break;
             tagsToSave.add(scanner.next());
         }
-//        String html = "<meta charset=\"UTF-8\">" +
-//                        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
-//                        "<title>PixelBit</title><link href=\"https://fonts.googleapis.com/css2?family=Lobster&family=Yusei+Magic&display=swap\" rel=\"stylesheet\">" +
-//                        "<link rel=\"stylesheet\" href=\"style.css\">" +
-//                        "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js\" integrity=\"sha512-k2WPPrSgRFI6cTaHHhJdc8kAXaRM4JBFEDo1pPGGlYiOyv4vnA0Pp0G5XMYYxgAPmtmv/IIaQA6n5fLAyJaFMA==\" crossorigin=\"anonymous\"></script>";
 
         String html = readFromFile();
+        String replacedHtml = replaceWantedTags(tagsToSave, html);
+        html = replaceUnwantedTags(replacedHtml);
+        html = recoverWantedTags(tagsToSave, html);
+        writeToFile(html);
+    }
+
+
+    private static String recoverWantedTags(List<String> tagsToSave, String html) {
+        String regex;
+        String replacedHtml = null;
+        for (int i = 0; i < tagsToSave.size(); i++) {
+            regex = "buffer" + i;
+            replacedHtml = html.replaceAll(regex, "<" + tagsToSave.get(i));
+        }
+        return replacedHtml;
+    }
+
+    private static String replaceWantedTags(List<String> tagsToSave, String html) {
         String regex;
         String replacedHtml = null;
         for (int i = 0; i < tagsToSave.size(); i++) {
             regex = "<" + tagsToSave.get(i);
             replacedHtml = html.replaceAll(regex, "buffer" + i);
         }
+        return replacedHtml;
+    }
 
-        // удаление ненужных атрибутов
+    private static String replaceUnwantedTags(String replacedHtml) {
+        String html;
         html = replacedHtml.replaceAll("(<\\w+)[^>]*(>)", "$1$2");
-        System.out.println(html);
+        return html;
+    }
 
+    private static void writeToFile(String outputStr){
+        String path = "newIndex.html";
+        File file = new File(path);
+        String[] words = outputStr.split(">");
+        for (int i = 0; i < words.length; i++) {
+            words[i] += ">";
+        }
+        try {
+            PrintWriter printWriter = new PrintWriter(file);
+            for(String str : words)
+                printWriter.println(str);
+            printWriter.close();
 
-        // обратная замена buffer на те теги
-        for (int i = 0; i < tagsToSave.size(); i++) {
-            regex = "buffer" + i;
-            replacedHtml = html.replaceAll(regex, "<" + tagsToSave.get(i));
+        } catch (FileNotFoundException exception) {
+            exception.printStackTrace();
+            System.out.println("Can't write to file");
         }
     }
 
-    public static String readFromFile() throws FileNotFoundException {
-        String path = "C:\\Users\\artem\\IdeaProjects\\lab4\\src\\ru\\bstu\\it32\\bogunov\\index.html";
+    private static String readFromFile() {
+        String path = "index.html";
         File file = new File(path);
-        String fileInput = "";
-        Scanner scanner = new Scanner(file);
-        while (scanner.hasNextLine()){
-             fileInput += scanner.nextLine();
+        StringBuilder fileInput = new StringBuilder();
+        Scanner scanner;
+        try {
+            scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                fileInput.append(scanner.nextLine());
+            }
+        } catch (FileNotFoundException exception) {
+            exception.printStackTrace();
+            System.out.println("Can't open file");
         }
-        return fileInput;
+        return fileInput.toString();
     }
 }
 
