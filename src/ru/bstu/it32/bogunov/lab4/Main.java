@@ -13,7 +13,7 @@ public class Main {
         List<String> tagsToSave = new ArrayList<>();
 
         while(true){
-            System.out.println("Enter tag to save or 0 to stop");
+            System.out.println("Enter tag to save or 0 to continue: ");
             if (scanner.hasNextInt())
                 if (scanner.nextInt() == 0) break;
             tagsToSave.add(scanner.next());
@@ -29,20 +29,20 @@ public class Main {
 
     private static String recoverWantedTags(List<String> tagsToSave, String html) {
         String regex;
-        String replacedHtml = null;
+        String replacedHtml = html;
         for (int i = 0; i < tagsToSave.size(); i++) {
             regex = "buffer" + i;
-            replacedHtml = html.replaceAll(regex, "<" + tagsToSave.get(i));
+            replacedHtml = replacedHtml.replaceAll(regex, "<" + tagsToSave.get(i));
         }
         return replacedHtml;
     }
 
     private static String replaceWantedTags(List<String> tagsToSave, String html) {
         String regex;
-        String replacedHtml = null;
+        String replacedHtml = html;
         for (int i = 0; i < tagsToSave.size(); i++) {
             regex = "<" + tagsToSave.get(i);
-            replacedHtml = html.replaceAll(regex, "buffer" + i);
+            replacedHtml = replacedHtml.replaceAll(regex, "buffer" + i);
         }
         return replacedHtml;
     }
