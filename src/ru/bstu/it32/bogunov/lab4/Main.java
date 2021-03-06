@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         Scanner scanner = new Scanner(System.in);
         List<String> tagsToSave = new ArrayList<>();
 
@@ -19,13 +19,39 @@ public class Main {
             tagsToSave.add(scanner.next());
         }
 
-        String html = readFromFile();
-        String replacedHtml = replaceWantedTags(tagsToSave, html);
-        html = replaceUnwantedTags(replacedHtml);
-        html = recoverWantedTags(tagsToSave, html);
-        writeToFile(html);
+        //String html = readFromFile();
+        String path = "index.html";
+        File file = new File(path);
+        scanner = new Scanner(file);
+        List<String> lines = new ArrayList<>();
+        while(scanner.hasNextLine()){
+            lines.add(scanner.nextLine());
+        }
+
+        for (int i = 0; i < tagsToSave.size(); i++) {
+            String replacedLine = lines.get(i).replaceAll("(<\\w+)[^>]*(>)", "$1$2");
+            if(containsTag(tagsToSave, replacedLine)) continue;
+            lines.set(i,lines.get(i).replaceAll("(<\\w+)[^>]*(>)", "$1$2"));
+        }
+//        String replacedHtml = replaceWantedTags(tagsToSave, html);
+//        html = replaceUnwantedTags(replacedHtml);
+//        html = recoverWantedTags(tagsToSave, html);
+        StringBuilder html = new StringBuilder();
+        for (String line : lines) {
+            html.append(line + "\n");
+        }
+        writeToFile(html.toString());
     }
 
+    private static boolean containsTag(List<String> tagsToSave, String tag){
+        for (String s : tagsToSave) {
+            String[] words = s.split(" ");
+            for (String word : words) {
+                if (word.equals("<" + tag + ">")) return true;
+            }
+        }
+        return false;
+    }
 
     private static String recoverWantedTags(List<String> tagsToSave, String html) {
         String regex;
