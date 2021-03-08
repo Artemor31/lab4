@@ -12,71 +12,45 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         List<String> tagsToSave = new ArrayList<>();
 
-        while(true){
+        while(true) {
             System.out.println("Enter tag to save or 0 to continue: ");
             if (scanner.hasNextInt())
                 if (scanner.nextInt() == 0) break;
             tagsToSave.add(scanner.next());
         }
 
-        //String html = readFromFile();
         String path = "index.html";
         File file = new File(path);
         scanner = new Scanner(file);
         List<String> lines = new ArrayList<>();
-        while(scanner.hasNextLine()){
+        while(scanner.hasNextLine()) {
             lines.add(scanner.nextLine());
         }
 
-        for (int i = 0; i < tagsToSave.size(); i++) {
-            String replacedLine = lines.get(i).replaceAll("(<\\w+)[^>]*(>)", "$1$2");
-            if(containsTag(tagsToSave, replacedLine)) continue;
-            lines.set(i,lines.get(i).replaceAll("(<\\w+)[^>]*(>)", "$1$2"));
-        }
-//        String replacedHtml = replaceWantedTags(tagsToSave, html);
-//        html = replaceUnwantedTags(replacedHtml);
-//        html = recoverWantedTags(tagsToSave, html);
-        StringBuilder html = new StringBuilder();
-        for (String line : lines) {
-            html.append(line + "\n");
-        }
-        writeToFile(html.toString());
-    }
+        // for all lines
+        for (int i = 0; i < lines.size(); i++) {
 
-    private static boolean containsTag(List<String> tagsToSave, String tag){
-        for (String s : tagsToSave) {
-            String[] words = s.split(" ");
-            for (String word : words) {
-                if (word.equals("<" + tag + ">")) return true;
+            // for all tags to save
+            for (int j = 0; j < tagsToSave.size(); j++) {
+
+                // create new line and try to replace in it current loop tag
+                String replacedLine = lines.get(i).
+                        replaceAll("(<" + tagsToSave.get(j) + "+)[^>]*(>)", "$1$2");
+
+                // if this line contains current loop tag
+                if (!replacedLine.equals(lines.get(i)))
+                    break;
+                // if we complete loop and didn't find requested tags in current line
+                if(j == tagsToSave.size() - 1)
+                    lines.set(i, lines.get(i).replaceAll("(<\\w+)[^>]*(>)", "$1$2"));
             }
         }
-        return false;
-    }
-
-    private static String recoverWantedTags(List<String> tagsToSave, String html) {
-        String regex;
-        String replacedHtml = html;
-        for (int i = 0; i < tagsToSave.size(); i++) {
-            regex = "buffer" + i;
-            replacedHtml = replacedHtml.replaceAll(regex, "<" + tagsToSave.get(i));
+        ///////// write to file preparations
+        StringBuilder html = new StringBuilder();
+        for (String line : lines) {
+            html.append(line).append("\n");
         }
-        return replacedHtml;
-    }
-
-    private static String replaceWantedTags(List<String> tagsToSave, String html) {
-        String regex;
-        String replacedHtml = html;
-        for (int i = 0; i < tagsToSave.size(); i++) {
-            regex = "<" + tagsToSave.get(i);
-            replacedHtml = replacedHtml.replaceAll(regex, "buffer" + i);
-        }
-        return replacedHtml;
-    }
-
-    private static String replaceUnwantedTags(String replacedHtml) {
-        String html;
-        html = replacedHtml.replaceAll("(<\\w+)[^>]*(>)", "$1$2");
-        return html;
+        writeToFile(html.toString());
     }
 
     private static void writeToFile(String outputStr){
@@ -86,33 +60,18 @@ public class Main {
         for (int i = 0; i < words.length; i++) {
             words[i] += ">";
         }
+        StringBuilder fullFile = new StringBuilder();
+        for(String str : words)
+            fullFile.append(str);
         try {
             PrintWriter printWriter = new PrintWriter(file);
-            for(String str : words)
-                printWriter.println(str);
+            printWriter.println(fullFile);
             printWriter.close();
 
         } catch (FileNotFoundException exception) {
             exception.printStackTrace();
             System.out.println("Can't write to file");
         }
-    }
-
-    private static String readFromFile() {
-        String path = "index.html";
-        File file = new File(path);
-        StringBuilder fileInput = new StringBuilder();
-        Scanner scanner;
-        try {
-            scanner = new Scanner(file);
-            while (scanner.hasNextLine()) {
-                fileInput.append(scanner.nextLine());
-            }
-        } catch (FileNotFoundException exception) {
-            exception.printStackTrace();
-            System.out.println("Can't open file");
-        }
-        return fileInput.toString();
     }
 }
 
